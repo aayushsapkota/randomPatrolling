@@ -25,6 +25,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
@@ -36,18 +37,22 @@ import static android.location.LocationManager.NETWORK_PROVIDER;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    public static LocationListener locationListener;
     private GoogleMap mMap;
-    private LocationListener locationListener;
+    GoogleMap.OnInfoWindowClickListener onInfoWindowClickListener;
     private LocationManager locationManager;
-    private ArrayList<SelectedLocation> selectedLocations = new ArrayList<>();
-    SelectedLocation selectedLocationObj = new SelectedLocation();
-    double latitude;
-    double longitude;
-    double placeCheckBackTime;
-    double minStay;
-    double maxStay;
-    double priorityIndex;
-    String addressname;
+    placeManager placeObj = new placeManager();
+    ArrayList<SelectedLocation> LocationList;
+    LatLng newLocationAdded;
+    private double latitude;
+    private double longitude;
+    private String address;
+    private String minStay;
+    private String maxStay;
+    private String priority;
+    private String checkBackOn;
+    private String result;
+    Location lastLocation;
 
 
     @Override
@@ -66,7 +71,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
@@ -91,7 +95,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 mMap.setMyLocationEnabled(true);
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 300, 500, locationListener);
-                Location lastLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                lastLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 centerMapLocation(lastLocation, "Your location");
 
             } else {
@@ -119,62 +123,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        Intent getPlaces = getIntent();
-        if (getPlaces.getStringExtra("addressName") != null) {
-            addressname = getPlaces.getStringExtra("addressName");
-            Log.d("addressName", addressname);
+        LocationList = placeObj.getdestinationList();
+
+        for (SelectedLocation s : LocationList) {
+            address = s.getName();
+            latitude = Double.parseDouble(s.getLatitude());
+            longitude = Double.parseDouble(s.getLongitude());
+            newLocationAdded = new LatLng(latitude, longitude);
+
+            minStay = s.getMinTimeToStay();
+            maxStay = s.getMaxTimeTOStay();
+            priority = s.getPriority();
+            checkBackOn = s.getCheckBackOn();
+            mMap.addMarker(new MarkerOptions().position(newLocationAdded).title(address));
         }
 
-        if (getPlaces.getDoubleExtra("latitude", 0) != 0) {
-            latitude = getPlaces.getDoubleExtra("latitude", 0);
-            Log.d("latitude", String.valueOf(latitude));
-        }
-        if (getPlaces.getDoubleExtra("longitude", 0) != 0) {
-            longitude = getPlaces.getDoubleExtra("longitude", 0);
-            Log.d("longitude", String.valueOf(longitude));
-        }
-        if (getPlaces.getDoubleExtra("minTimeStay", 0) != 0) {
-            longitude = getPlaces.getDoubleExtra("longitude", 0);
-            Log.d("longitude", String.valueOf(longitude));
-        }
-        if (getPlaces.getDoubleExtra("maxTimeStay", 0) != 0) {
-            longitude = getPlaces.getDoubleExtra("longitude", 0);
-            Log.d("longitude", String.valueOf(longitude));
-        }
-        if (getPlaces.getDoubleExtra("priorityIndex", 0) != 0) {
-            longitude = getPlaces.getDoubleExtra("longitude", 0);
-            Log.d("longitude", String.valueOf(longitude));
-        }
-        if (getPlaces.getDoubleExtra("latitude", 0) != 0) {
-            latitude = getPlaces.getDoubleExtra("latitude", 0);
-            Log.d("latitude", String.valueOf(latitude));
-        }
-        if (getPlaces.getDoubleExtra("longitude", 0) != 0) {
-            longitude = getPlaces.getDoubleExtra("longitude", 0);
-            Log.d("longitude", String.valueOf(longitude));
-        }
-        if (getPlaces.getDoubleExtra("minTimeStay", 0) != 0) {
-            minStay = getPlaces.getDoubleExtra("longitude", 0);
-            Log.d("longitude", String.valueOf(longitude));
-        }
-        if (getPlaces.getDoubleExtra("maxTimeStay", 0) != 0) {
-            maxStay = getPlaces.getDoubleExtra("longitude", 0);
-            Log.d("longitude", String.valueOf(longitude));
-        }
-        if (getPlaces.getDoubleExtra("priorityIndex", 0) != 0) {
-            priorityIndex = getPlaces.getDoubleExtra("longitude", 0);
-            Log.d("longitude", String.valueOf(longitude));
-        }
-        if (getPlaces.getDoubleExtra("addPlaceCheckBackTime", 0) != 0) {
-            placeCheckBackTime = getPlaces.getDoubleExtra("longitude", 0);
-            Log.d("longitude", String.valueOf(longitude));
-        }
-        LatLng newLocationAdded = new LatLng(latitude, longitude);
-        if (latitude != 0 && longitude != 0) {
-            selectedLocationObj.addPlaceInformation(addressname, String.valueOf(longitude), String.valueOf(latitude),
-                    String.valueOf(minStay), String.valueOf(maxStay), String.valueOf(priorityIndex), String.valueOf(placeCheckBackTime));
-            mMap.addMarker(new MarkerOptions().position(newLocationAdded).title(addressname));
-        }
+        onInfoWindowClickListener = new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+               windowClick(marker);
+            }
+        };
+
+        mMap.setOnInfoWindowClickListener(onInfoWindowClickListener);
+
 
     }
 
@@ -182,10 +154,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
+
     }
 
-    public ArrayList<SelectedLocation> getSelectedLocationList(){
-        return selectedLocations;
+    public Location getUserLocation(){
+        return  lastLocation;
+    }
+
+
+    public void windowClick(Marker marker) {
+        String markerAddress = marker.getTitle();
+        Log.d("markerTitle", markerAddress);
+        for (SelectedLocation s : LocationList) {
+            if (markerAddress.equals(s.getName())) {
+                Intent i = new Intent(MapsActivity.this, Display_location_info.class);
+                i.putExtra("address", s.getName());
+                i.putExtra("Latitude", s.getLatitude());
+                i.putExtra("Longitude", s.getLongitude());
+                i.putExtra("minTime", s.getMinTimeToStay());
+                i.putExtra("MaxTime", s.getMaxTimeTOStay());
+                i.putExtra("priority", s.getPriority());
+                i.putExtra("checkBackOn", s.getCheckBackOn());
+                startActivity(i);
+            }
+        }
     }
 }
 

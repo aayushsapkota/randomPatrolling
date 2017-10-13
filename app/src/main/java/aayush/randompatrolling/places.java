@@ -5,21 +5,28 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
+
+import com.android.volley.Response;
 
 import java.util.ArrayList;
 
 public class places extends AppCompatActivity {
 
-    MapsActivity map = new MapsActivity();
+    tspCalculator tsp = new tspCalculator();
+
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_places);
 
-        TextView view = (TextView) findViewById(R.id.textView2);
+
         Button addPlace = (Button) findViewById(R.id.addPlaceButton);
         Button back = (Button) findViewById(R.id.placesBack);
 
@@ -39,17 +46,9 @@ public class places extends AppCompatActivity {
             }
         });
 
-        ArrayList<SelectedLocation> selectedLocationList = map.getSelectedLocationList();
-        for(SelectedLocation s: selectedLocationList){
-            
-        }
-        if (selectedLocationList.toString() != null || selectedLocationList.toString().equals("")) {
-            view.setText(" ALl Selected Locations \n" +
-                    selectedLocationList.toString());
-            Log.d("Selection list",  selectedLocationList.toString() );
-        } else {
-            view.setText(" ALl Selected Locations \n No Data present yet");
-        }
 
+        TextView resultView = (TextView) findViewById(R.id.result);
+
+       resultView.setText(tsp.getTspRoute());
     }
 }

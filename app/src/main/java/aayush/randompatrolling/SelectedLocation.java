@@ -1,6 +1,16 @@
 package aayush.randompatrolling;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.renderscript.RenderScript;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
@@ -8,7 +18,7 @@ import java.util.ArrayList;
 public class SelectedLocation {
 
     private ArrayList<String> place = new ArrayList<>();
-
+    private LocationManager locationManager;
     private String name;
     private String longitude;
     private String latitude;
@@ -17,8 +27,7 @@ public class SelectedLocation {
     private String priority;
     private String checkBackOn;
 
-    public SelectedLocation() {
-    }
+    double distance;
 
     public void addPlaceInformation(String name, String longitude, String latitude,
                                     String minTimeToStay, String maxTimeTOStay, String priority, String checkBackOn) {
@@ -44,32 +53,49 @@ public class SelectedLocation {
         return place;
     }
 
+
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public String getLongitude() {
-        return longitude;
+        return this.longitude;
     }
 
     public String getLatitude() {
-        return latitude;
+        return this.latitude;
     }
 
     public String getMinTimeToStay() {
-        return minTimeToStay;
+        return this.minTimeToStay;
     }
 
     public String getMaxTimeTOStay() {
-        return maxTimeTOStay;
+        return this.maxTimeTOStay;
     }
 
     public String getPriority() {
-        return priority;
+        return this.priority;
     }
 
     public String getCheckBackOn() {
-        return checkBackOn;
+        return this.checkBackOn;
+    }
+
+    public double distanceTo(SelectedLocation location) {
+        try {
+            double tempLatitude = Double.parseDouble(location.latitude);
+            double tempLongitude = Double.parseDouble(location.longitude);
+            double xLatitude = Math.abs(Double.parseDouble(longitude) - tempLatitude);
+            double yLongitude = Math.abs(Double.parseDouble(latitude) - tempLongitude);
+            //pathagoras theorem
+            distance = Math.sqrt((xLatitude * xLatitude) + (yLongitude * yLongitude));
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+
+
+        return distance;
     }
 
 

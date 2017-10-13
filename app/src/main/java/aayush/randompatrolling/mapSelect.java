@@ -93,6 +93,7 @@ public class mapSelect extends FragmentActivity implements OnMapReadyCallback, G
 
     }
 
+    @Override
     public void onMapLongClick(LatLng latLng) {
         Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
@@ -107,7 +108,7 @@ public class mapSelect extends FragmentActivity implements OnMapReadyCallback, G
                     address += currnetAddressLists.get(0).getThoroughfare();
                     Log.d("address", address);
                 }
-                if (address == "") {
+                if (address.equals("")) {
                     address = String.valueOf(latLng.latitude) + " " + String.valueOf(latLng.longitude);
                 }
                 Intent i = new Intent(getApplicationContext(), addPlace.class);
@@ -123,6 +124,7 @@ public class mapSelect extends FragmentActivity implements OnMapReadyCallback, G
         }
 
     }
+
     private void centerMapLocation(Location location, String title) {
         LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.clear();

@@ -1,6 +1,9 @@
 package aayush.randompatrolling;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -33,7 +36,7 @@ public class register extends AppCompatActivity {
         Register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(login.hasNetworkConnection()){
+                if(hasNetworkConnection()){
                     final String name = getName.getText().toString();
                     final String organization = getOrganization.getText().toString();
                     final String username = getUsername.getText().toString();
@@ -74,5 +77,18 @@ public class register extends AppCompatActivity {
             }
             }
         });
+    }
+
+    public boolean hasNetworkConnection() {
+        boolean connected = false;
+        try {
+            ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo netActive = connectivityManager.getActiveNetworkInfo();
+            connected = netActive != null && netActive.isAvailable() && netActive.isConnected();
+            return connected;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return connected;
     }
 }
